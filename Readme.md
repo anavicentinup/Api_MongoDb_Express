@@ -61,6 +61,10 @@ La API cuenta con rutas públicas para la autenticación y un conjunto de endpoi
 | **PATCH** | `/api/products/:id` | Modifica un producto(solo si le pertenece al usuario)| **Privado**           |  Sí |
 | **DELETE**| `/api/products/:id` | Elimina un producto de la base de datos (solo si le pertenece).| **Privado** |  Sí |
 
+***Deploy funcional en RENDER: https://api-mongodb-express.onrender.com
+
+
+
 Desarrollado con ❤️ por Anabella Vicentin - 2026.
 
 
