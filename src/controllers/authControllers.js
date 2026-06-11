@@ -17,8 +17,6 @@ const catchUsuarios = async (request, response) => {
             creado: user.createdAt.toLocaleString("es-AR"),
             actualizado: user.updatedAt.toLocaleString("es-AR")
         }))
-
-
         response.status(200).json({
             success: true,
             data: publicDataUsers,
@@ -32,8 +30,8 @@ const catchUsuarios = async (request, response) => {
 
 const register = async (request, response) => {
     try {
-        const { body } = request // ES LO MISMO QUE => const body = request.body
-        const { username, password, email } = body // saco el password del body.
+        const { body } = request 
+        const { username, password, email } = body 
 
         const foundUser = await User.findOne({ email })
         if (foundUser) {
@@ -44,8 +42,7 @@ const register = async (request, response) => {
         if (!passwordRegex.test(password)) {
             return response.status(400).json({ success: false, error: "tu contraseña esta mal creada" })
         }
-        const hashedPassword = await bcrypt.hash(password, 10)// hassheo el  password con bcrypt.
-
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         const newUser = await User.create({
             username,
@@ -61,7 +58,7 @@ const register = async (request, response) => {
                 username: newUser.username,
                 email: newUser.email,
                 creado: newUser.createdAt.toLocaleString("es-AR"),
-                actualizado: newUser.updatedAt
+                actualizado: newUser.updatedAt.toLocaleString("es-AR")
             }
         })
     } catch (error) {
@@ -72,41 +69,35 @@ const register = async (request, response) => {
 
 const login = async (request, response) => {
     try {
-        const { body, ip } = request //saco el body del request
-
-        console.log(ip, "<= ip del usuario")
-        const { email, password } = body //saco lo q necesito del body 
-        //validaciones
+        const { body, ip } = request 
+        const { email, password } = body 
+       
         if (!email || !password) {
             return response.status(401).json({ success: false, message: "desautorizado" })
         }
-        console.log("ANTES DEL FIND")
+        
         const findUser = await User.findOne({ email })
-        console.log("DESPUES DEL FIND")
-        console.log(findUser)
-        //validaciones
+       
         if (!findUser) {
             return response.status(403).json({ success: false, message: "no estas registrado" })
         }
-
         const isValid = await bcrypt.compare(password, findUser.password)//comparo la contraseña
-        //validaciones
+        
         if (!isValid) {
             return response.status(403).json({ success: false, message: "no estas corroborado" })
         }
 
-        const payLoad = { id: findUser.id, email: findUser.email, name: findUser.username } //payload es la info del usuario guardada en el token.
-        const secretKey = process.env.JWT_SECRETKEY//secretKey es la clave secreta para generar el token.
-        const options = { expiresIn: "30d" } //options son las opciones para generar el token, como la fecha de expiracion, el algoritmo, etc.
+        const payLoad = { id: findUser.id, email: findUser.email, name: findUser.username } 
+        const secretKey = process.env.JWT_SECRETKEY
+        const options = { expiresIn: "30d" }
+        const token = jwt.sign(payLoad, secretKey, options)
 
-        const token = jwt.sign(payLoad, secretKey, options)//
-        console.log(login.body)
         response.status(200).json({ success: true, data: token, message: "login exitoso" })
     }
     catch (error) {
-        response.status(500).json({ success: false, message: error.message })
+        response.status(500).json({ success: false, data: error.message , message: "error en el servidor" })
     }
-    console.log("se logueo un usuario")
+    console
 }
 
 export { catchUsuarios, login, register }

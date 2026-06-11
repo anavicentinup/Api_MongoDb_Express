@@ -1,7 +1,5 @@
 import { Product } from '../models/productModel.js'
 
-
-
 const getProducts = async (request, response) => {
     const userlogged = request.userLogger
     if (!userlogged) return response.status(401).json({ error: "no podes ver los productos porque estas desautorizado" })
@@ -24,15 +22,14 @@ const getProducts = async (request, response) => {
             success: true,
             data: productosFormateados,
             message: "productos traidos correctamente"
-
         })
-        
+    
     }
     catch (error) {
         response.status(500).json({
             success: false,
-            message: error.message
-
+            data: error.message,
+            message: "error al traer los productos"
         })
     }
     console.log("pidieron los productos")
@@ -42,16 +39,14 @@ const getProductId = async (request, response) => {
     const userlogged = request.userLogger
     if (!userlogged) return response.status(401).json({ error: "no podes buscar porque estas desautorizado" })
     try {
-        const id = request.params.id //recupero los params de la ruta, es un objeto propio de express que contiene los parámetros dinámicos de la ruta, en este caso el id del producto.
+        const id = request.params.id 
 
         const foundProduct = await Product.findOne({
             _id: id,
             userId: userlogged.id
-        }, { userId: 0 })//busco el producto por su id y por el id del usuario, para asegurarme que el producto le pertenece al usuario logueado, y le digo que no me traiga el userId porque no es necesario mostrarlo.
-
-        if (!foundProduct) return response.status(404).json({ error: "Producto no encontrado o no te pertenece" })//return implicito de arrow fuction
-
-
+        }, 
+        { userId: 0 })
+        if (!foundProduct) return response.status(404).json({ error: "Producto no encontrado o no te pertenece" })
         response.status(200).json({
             success: true,
             data: {
@@ -61,12 +56,12 @@ const getProductId = async (request, response) => {
             },
             message: "producto encontrado efectivamente"
         })
-     
     }
     catch (error) {
         response.status(500).json({
             success: false,
-            message: error.message
+            data: error.message,
+            message: "error al buscar el producto"
         })
     }
 console.log("pidieron un producto por id")
@@ -95,7 +90,6 @@ const createProduct = async (request, response) => {
             available: newProduct.available,
             createdAt: newProduct.createdAt.toLocaleString("es-AR"),
             updatedAt: newProduct.updatedAt.toLocaleString("es-AR")
-
         }
 
         response.status(200).json({
@@ -107,7 +101,8 @@ const createProduct = async (request, response) => {
     } catch (error) {
         response.status(500).json({
             success: false,
-            message: error.message
+            data: error.message,
+            message: "error al crear el producto"
         })
     }
     console.log("crearon un producto")
@@ -122,7 +117,6 @@ const updateProduct = async (request, response) => {
         body.available = body.stock > 0
     }
     try {
-
         const updatedProduct = await Product.findOneAndUpdate(
             {
                 _id: id,
@@ -135,7 +129,7 @@ const updateProduct = async (request, response) => {
             }
         )
 
-        if (!updatedProduct) return response.status(404).json({ success: false, message: "no se encuentra" })
+        if (!updatedProduct) return response.status(404).json({ success: false, message: "no existe ese producto" })
 
         response.status(200).json({
             success: true,
@@ -149,7 +143,8 @@ const updateProduct = async (request, response) => {
     } catch (error) {
         return response.status(500).json({
             success: false,
-            message: error.message
+            data: error.message,
+            message: "error al actualizar el producto"
         })
     }
     console.log("actualizaron un producto")
@@ -161,16 +156,11 @@ const deleteProduct = async (request, response) => {
     try {
         const deletedProduct = await Product.findOneAndDelete({
             _id: request.params.id,
-            userId: userlogged.id//tiene q ser el nombre de la db
-        }) //podria agregar una proyeccion {userId: 0} para q no se vea el id.
+            userId: userlogged.id
+        })
 
         if (!deletedProduct) return response.status(404).json({ success: false, error: "producto no encontrado o no te pertenece" })
-        //otra forma de eliminar el userId del producto borrado, pero no es necesario porque no lo estoy mostrando en la respuesta.
-        //  const product = deletedProduct.toObject()
-        // delete product.userId
-
-        const publicDataProduct = { ...deletedProduct }
-
+   
         const publicData = {
             id: deletedProduct._id,
             name: deletedProduct.name,
@@ -184,12 +174,11 @@ const deleteProduct = async (request, response) => {
             success: true,
             product: publicData,
             message: "producto eliminado correctamente"
-
         })
     }
 
     catch (error) {
-        response.status(500).json({ success: false, message: error.message })
+        response.status(500).json({ success: false, data: error.message, message: "error al eliminar el producto" })
     }
     console.log("borraron un producto")
 }
