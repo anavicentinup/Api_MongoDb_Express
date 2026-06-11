@@ -1,3 +1,5 @@
+//test creado con IA para probar la ruta base y la protección de la ruta de productos
+
 import request from 'supertest';
 import { server } from '../app.js'; // Ajustá los puntos si hace falta subir carpetas
 import mongoose from 'mongoose';

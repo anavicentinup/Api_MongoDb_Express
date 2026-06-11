@@ -2,7 +2,6 @@ import { connect } from "mongoose"
 import { configDotenv } from 'dotenv';
 configDotenv()  
 
-//conecxion a la base de datos
 const conectionDb = async () => {
     try {
      console.log("intentando conectar...")

@@ -13,14 +13,12 @@ configDotenv()
 conectionDb()
 const server = express()
 
-
-//permitir que las peticiones post puedan enviar el body en json:
-server.use(express.json())// permite que se pueda leer el body de la request
+server.use(express.json())
 server.use(cors())
 server.use("/api/products", AuthMidleware, ProductsRouter)
 server.use("/api/auth", AuthRouter)
 server.get("/", (request, response) => {
-    // comprobando que se conectó a la base de datos antes de responder
+    
     if (mongoose.connection.readyState === 1) {
         return response.status(200).json({
             success: true,
