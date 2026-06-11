@@ -124,7 +124,7 @@ const updateProduct = async (request, response) => {
             },
             body,
             {
-                new: true,
+                returnDocument: 'after',
                 select: { userId: 0 }
             }
         )

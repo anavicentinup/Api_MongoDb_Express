@@ -52,14 +52,14 @@ La API cuenta con rutas públicas para la autenticación y un conjunto de endpoi
 
 ### 🧪 Detalle de la Colección de Pruebas (Endpoints)
 
-| Método | Endpoint | Descripción | Tipo de Acceso | Middleware Auth |
-| :---: | :--- | :--- | :---: | :---: |
-| **POST** | `/api/auth/register` | Registro de nuevos usuarios en la base de datos. | **Público** | ❌ No |
-| **POST** | `/api/auth/login` | Autenticación de usuarios. Devuelve el Token JWT. | **Público** | ❌ No |
-| **GET** | `/api/products` | Lista únicamente los productos del usuario logueado. | **Privado** |  Sí |
-| **POST** | `/api/products` | Crea un nuevo producto asociado al ID del usuario. | **Privado** |  Sí |
-| **PATCH** | `/api/products/:id` | Modifica un producto (solo si le pertenece al usuario). | **Privado** |  Sí |
-| **DELETE** | `/api/products/:id` | Elimina un producto de la base de datos (solo si le pertenece). | **Privado** |  Sí |
+| Método      | Endpoint          | Descripción                                         | Tipo de Acceso         | Middleware Auth |
+
+| **POST**  | `/api/auth/register`| Registro de nuevos usuarios en la base de datos.     | **Público**           | ❌ No |
+| **POST**  | `/api/auth/login`   | Autenticación de usuarios. Devuelve el Token JWT.    | **Público**           | ❌ No |
+| **GET**   | `/api/products`     | Lista únicamente los productos del usuario logueado. | **Privado**           |  Sí |
+| **POST**  | `/api/products`     | Crea un nuevo producto asociado al ID del usuario.   | **Privado**           |  Sí |
+| **PATCH** | `/api/products/:id` | Modifica un producto(solo si le pertenece al usuario)| **Privado**           |  Sí |
+| **DELETE**| `/api/products/:id` | Elimina un producto de la base de datos (solo si le pertenece).| **Privado** |  Sí |
 
 Desarrollado con ❤️ por Anabella Vicentin - 2026.
 

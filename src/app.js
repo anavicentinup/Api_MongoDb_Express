@@ -36,7 +36,7 @@ const entorno = "dev"
 let PORT = 3000
 
 if (entorno === "dev") {
-    PORT = process.env.PORT
+    PORT = process.env.PORT || 3001
 }
 
 server.listen(PORT, () => {
