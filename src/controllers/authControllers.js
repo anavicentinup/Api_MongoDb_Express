@@ -58,7 +58,7 @@ const register = async (request, response) => {
 
     const validRoles = ["user", "admin"];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ success: false, message: "Rol inválido" });
+      return response.status(400).json({ success: false, message: "Rol inválido" });
     }
     const newUser = await User.create({
       username,

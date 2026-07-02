@@ -36,14 +36,14 @@ const createProduct = async (request, response) => {
     const userlogged = request.userLogger
     try {
         const validacionZod = productSchemaZod.safeParse(request.body);
-    if (!validacionZod.success) {
-      return response.status(400).json({
-        success: false,
-        errors: validacionZod.error.errors.map(err => err.message)
-      })
-    }
+        if (!validacionZod.success) {
+            return response.status(400).json({
+                success: false,
+                errors: validacionZod.error.issues.map(err => err.message)
+            })
+        }
 
-        const body =validacionZod.data;
+        const body = validacionZod.data;
 
         const newProduct = await Product.create({
             name: body.name,
@@ -86,17 +86,17 @@ const updateProduct = async (request, response) => {
     const id = request.params.id
 
     try {
- const validacionZod = productUpdateSchemaZod.safeParse(request.body);
-    if (!validacionZod.success) {
-      return response.status(400).json({
-        success: false,
-        errors: validacionZod.error.errors.map(err => err.message)
-      })
-    }
+        const validacionZod = productUpdateSchemaZod.safeParse(request.body);
+        if (!validacionZod.success) {
+            return response.status(400).json({
+                success: false,
+                errors: validacionZod.error.errors.map(err => err.message)
+            })
+        }
         const body = validacionZod.data;
-          if (body.stock !== undefined) {
-        body.available = body.stock > 0
-    }
+        if (body.stock !== undefined) {
+            body.available = body.stock > 0
+        }
 
         const updatedProduct = await Product.findOneAndUpdate(
             {
@@ -111,8 +111,8 @@ const updateProduct = async (request, response) => {
         )
 
         if (!updatedProduct) return response.status(404).json({ success: false, message: "no existe ese producto" })
-        
-            const publicData = {
+
+        const publicData = {
             id: updatedProduct._id,
             name: updatedProduct.name,
             price: updatedProduct.price,
@@ -172,16 +172,40 @@ const deleteProduct = async (request, response) => {
 
 const getUserProducts = async (request, response) => {
     const userlogged = request.userLogger
-    let filterProducts;
     try {
-        if (userlogged.role === "admin") {
+        const { category, name, minPrice, maxPrice, available, page = 1, limit = 10 } = request.query;
+        let filterProducts = {}
 
-            filterProducts = await Product.find({}, { userId: 0 });
-        } else {
-
-            filterProducts = await Product.find({ userId: userlogged.id }, { userId: 0 })
+        if (userlogged.role !== "admin") {
+            filterProducts.userId = userlogged.id;
         }
-        const publicData = filterProducts.map(product => ({
+
+        if (category) {
+            const categoryDecoded = decodeURIComponent(category);
+            filterProducts.category = { $regex: categoryDecoded, $options: "i" };
+        }
+        if (name) {
+            filterProducts.name = { $regex: name, $options: "i" };
+        }
+        if (minPrice && maxPrice) {
+            filterProducts.price = { $gte: Number(minPrice), $lte: Number(maxPrice) };
+        }
+        if (available) {
+            filterProducts.available = available === "true";
+        }
+
+        // Paginación
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        const products = await Product.find(filterProducts, { userId: 0 })
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await Product.countDocuments(filterProducts);
+
+        const publicData = products.map(product => ({
             id: product._id,
             name: product.name,
             price: product.price,
@@ -195,6 +219,12 @@ const getUserProducts = async (request, response) => {
         response.status(200).json({
             success: true,
             data: publicData,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
+            },
             message: "productos traidos correctamente"
         })
 
@@ -211,32 +241,39 @@ const getUserProducts = async (request, response) => {
 
 const getPublicProducts = async (request, response) => {
     try {
-        const { category, name, price, available } = request.query;
-        let filter = {};
+        const { category, name, minPrice, maxPrice, available, page = 1, limit = 10 } = request.query;
+        let filterProducts = {};
         if (category) {
             const categoryDecoded = decodeURIComponent(category);//decodeURIComponent: funcion js nativa para decodificar caracteres especiales en la URL.
-            filter.category = {
+            filterProducts.category = {
                 $regex: categoryDecoded,
-                $options: "i"
+                $options: "i"// me toma MAY y MIN
             };
         }
         if (name) {
-            filter.name = { $regex: name, $options: 'i' };
+            filterProducts.name = { $regex: name, $options: 'i' };
         }
 
-        if (price) {
-            filter.price = {
+        if (minPrice && maxPrice) {
+            filterProducts.price = {
                 $gte: Number(minPrice),
                 $lte: Number(maxPrice)
             }
         }
 
         if (available) {
-            filter.available = available === 'true';
+            filterProducts.available = available === 'true';
         }
-      
 
-        const products = await Product.find(filter, { userId: 0 });
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        const products = await Product.find(filterProducts, { userId: 0 })
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await Product.countDocuments(filterProducts);
 
         const productosFormateados = products.map((product) => {
             const prod = product.toObject();
@@ -255,6 +292,12 @@ const getPublicProducts = async (request, response) => {
         response.status(200).json({
             success: true,
             data: productosFormateados,
+            pagination: {
+                total,                        
+                page: pageNum,               
+                limit: limitNum,             
+                totalPages: Math.ceil(total / limitNum) 
+            },
             message: "productos públicos obtenidos correctamente",
         });
     } catch (error) {

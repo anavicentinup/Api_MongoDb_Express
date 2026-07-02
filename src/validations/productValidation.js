@@ -4,8 +4,7 @@ const productSchemaZod = z.object({
     name: z.string("El nombre del producto debe existir")
         .trim("El nombre del producto no puede contener espacios al inicio o al final")
         .min(3, "El nombre del producto debe tener al menos 3 caracteres")
-        .max(100)
-        .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+$/, "El nombre del producto solo puede contener letras, números y espacios"),
+        .max(100),
     price: z.number("El precio del producto debe ser un número")
         .positive("El precio del producto debe ser un número positivo")
         .min(0, "El precio del producto no puede ser negativo")
@@ -19,8 +18,6 @@ const productSchemaZod = z.object({
         .int("El stock del producto debe ser un número entero")
         .min(0, "El stock del producto no puede ser negativo")
         .default(0),
-    userId: z.string()
-        .trim()
 })
 
 const productUpdateSchemaZod = z.object({
