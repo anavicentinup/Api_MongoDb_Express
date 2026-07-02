@@ -29,7 +29,6 @@ const checkRole = (allowedRoles) => {
     if (!allowedRoles.includes(user.role)) {
       return res.status(403).json({ success: false, message: "No tenés permisos para esta acción" });
     }
-    console.log("paso por el middleware de rol")
     next();
   };
     console.log("paso por el middleware de rol")

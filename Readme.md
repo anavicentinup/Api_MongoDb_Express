@@ -1,73 +1,150 @@
-# API de Gestión de Productos - TP Backend
+# API REST - Gestión de Usuarios y Productos
 
-¡Hola! Este es mi proyecto integrador de Backend para la UTN. Es una API REST desarrollada con Node.js y Express, conectada a una base de datos en la nube con MongoDB Atlas utilizando Mongoose.
+Proyecto backend desarrollado con Node.js, Express y MongoDB que implementa autenticación mediante JWT, control de acceso por roles, validación de datos con Zod y gestión de productos asociados a usuarios.
 
-## 🚀 Características y Requisitos del TP
-La API cuenta con rutas públicas para la autenticación y un conjunto de endpoints privados (protegidos mediante un Middleware de autenticación con JWT) para que cada usuario pueda gestionar únicamente sus propios productos.
+La aplicación sigue el patrón de arquitectura MVC (Model - View - Controller) y permite registrar usuarios, iniciar sesión, administrar perfiles y gestionar productos de forma segura.
 
-- **Estructura:** Arquitectura basada en el patrón MVC (Model-View-Controller).
-- **Seguridad:** Rutas protegidas mediante un Token en las cabeceras (Headers) y contraseñas seguras criptográficamente.
-- **Base de Datos:** MongoDB Atlas (en la nube) con persistencia de datos reales.
-- **Formato:** Respuestas JSON formateadas con fechas amigables configuradas en formato local (`es-AR`).
+## Tecnologías utilizadas
 
----
-
-## 🛠️ Tecnologías Utilizadas
-* **Node.js** (Entorno de ejecución)
-* **Express** (Framework para el servidor y enrutado)
-* **MongoDB & Mongoose** (Base de datos NoSQL y ODM)
-* **Dotenv** (Gestión de variables de entorno seguras)
-* **Cors** (Intercambio de recursos de origen cruzado)
-* **Bruno** (Herramienta de pruebas para la API)
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JWT (JSON Web Token)
+* BcryptJS
+* Zod
+* Dotenv
+* Express Rate Limit
 
 ---
 
-## 📂 Estructura del Proyecto (MVC)
+## Arquitectura MVC
+
 ```text
-├── src/
-│   ├── config/       # Conexión a MongoDB Atlas
-│   ├── controllers/  # Lógica de los endpoints
-│   ├── middlewares/  # Control de acceso y verificación de Tokens 
-│   ├── models/       # Esquemas de Mongoose (Product, User)
-│   ├── routes/       # Definición de rutas (productRouter, authRouter)
-│   └─── app.js        # Configuración de Express,
-│                        Arranque de la aplicación y base de datos
-├── .env.example      # Plantilla de variables de entorno
-├── README.md         # Documentación del proyecto
-└── package.json      # Dependencias del proyecto
+src
+│
+├── config
+│   └── mongoDbConection.js
+│
+├── controllers
+│   ├── authControllers.js
+│   └── productControllers.js
+│
+├── middlewares
+│   ├── authMiddleware.js
+│   └── limiterMiddleware.js
+│
+├── models
+│   ├── userModel.js
+│   └── productModel.js
+│
+├── routes
+│   ├── authRoutes.js
+│   └── productRoutes.js
+│
+├── test
+│
+├── validations
+│   ├── userValidation.js
+│   └── productValidation.js
+│
+└── app.js
 
-⚙️ Configuración e Instalación Local
-1. Clonar o descargar el proyecto e instalar dependencias: npm install
- 
-2. Configurar las Variables de Entorno:
-     Crea un archivo .env en la raíz del proyecto basándote en el archivo .env.example y completa tus credenciales secretas:
-       PORT= xxxx
-       MONGO_URI=tu_cadena_de_conexion_de_mongo_atlas
+---
 
-3. Iniciar el servidor en modo desarrollo: npm run dev
- 
+## Instalación
 
-🧪 Colección de Pruebas (Bruno)Para evaluar y probar los endpoints de la API, se incluyeron los archivos de configuración de Bruno directamente dentro de las carpetas de este proyecto.Solo debes abrir la aplicación Bruno, seleccionar "Open Collection" y apuntar a la carpeta del proyecto.Endpoints Disponibles: 
+Clonar repositorio: git clone "https://github.com/anavicentinup/Api_MongoDb_Express.git"
+
+Instalar dependencias: npm install
+
+Crear archivo `.env`
+
+```env
+PORT=3000
+
+URI_MONGO_DB=mongodb://localhost:27017/proyecto
+
+JWT_SECRETKEY=tu_clave_secreta
+```
+
+Ejecutar servidor: "npm run dev"
+
+---
+| Acción                   | User | Admin  |
+| ------------------------ | ---- | -----  |
+| Registrarse              | ✅    | ✅     |
+| Login                    | ✅    | ✅     |
+| Ver perfil               | ✅    | ✅     |
+| Modificar perfil         | ✅    | ✅     |
+| Cambiar contraseña       | ✅    | ✅     |
+| Crear producto           | ✅    | ❌     |
+| Editar producto propio   | ✅    | ❌     |
+| Eliminar producto propio | ✅    | ❌     |
+| Ver productos propios    | ✅    | ❌     |
+| Ver todos los productos  | ❌    | ✅     |
+| Ver usuarios registrados | ❌    | ✅     |
 
 
-### 🧪 Detalle de la Colección de Pruebas (Endpoints)
 
-| Método      | Endpoint          | Descripción                                         | Tipo de Acceso         | Middleware Auth |
+-------------------------------
+Ejemplos de Requests: 
+Login
+POST /auth/login
+{
+  "email": "usuario@gmail.com",
+  "password": "Abc1234!"
+}
+--------------------------------
+Crear producto
+POST /products
+{
+  "name": "Crema Facial",
+  "price": 3500,
+  "category": "Cosmeticos",
+  "stock": 10
+}
+-------------------------------
+Ejemplos de Query Params: 
 
-| **POST**  | `/api/auth/register`| Registro de nuevos usuarios en la base de datos.     | **Público**           | ❌ No |
-| **POST**  | `/api/auth/login`   | Autenticación de usuarios. Devuelve el Token JWT.    | **Público**           | ❌ No |
-| **GET**   | `/api/products`     | Lista únicamente los productos del usuario logueado. | **Privado**           |  Sí |
-| **POST**  | `/api/products`     | Crea un nuevo producto asociado al ID del usuario.   | **Privado**           |  Sí |
-| **PATCH** | `/api/products/:id` | Modifica un producto(solo si le pertenece al usuario)| **Privado**           |  Sí |
-| **DELETE**| `/api/products/:id` | Elimina un producto de la base de datos (solo si le pertenece).| **Privado** |  Sí |
+Buscar por categoría: (http://localhost:3001/api/products/productPublic?category=camisetas)
 
-***Deploy funcional en RENDER: https://api-mongodb-express.onrender.com
+Buscar por nombre: http://localhost:3001/api/products/productPublic?name=chipa
+
+Filtrar por disponibilidad: http://localhost:3001/api/products/productPublic?available=true
+
+Filtrar por rango de precios: 
+http://localhost:3001/api/products/productPublic?minPrice=1000&maxPrice=5000
+
+Paginación:
+http://localhost:3001/api/products/productPublic?page=2&limit=5
+
+Combinar filtros
+http://localhost:3001/api/products/productPublic?category=camisetas&minPrice=10000&maxPrice=25000&page=1&limit=3
 
 
-
-Desarrollado con ❤️ por Anabella Vicentin - 2026.
-
-
-
-
-
+Rutas de Autenticación
+Método	Ruta	Función
+POST	/auth/register	Registrar usuario
+POST	/auth/login	Iniciar sesión
+GET	/auth/users	Obtener todos los usuarios (Admin)
+GET	/auth/usuario	Obtener usuario logueado
+PUT	/auth/update	Actualizar perfil
+PUT	/auth/updatePassword	Cambiar contraseña
+Rutas de Productos
+Método	Ruta	Función
+GET	/products/productPublic	Obtener productos públicos
+GET	/products	Obtener productos
+GET	/products/:id	Obtener producto por ID
+POST	/products	Crear producto
+PUT	/products/:id	Actualizar producto
+DELETE	/products/:id	Eliminar producto
+Query Params Disponibles
+Query Param	Función
+category	Filtrar por categoría
+name	Filtrar por nombre
+minPrice	Precio mínimo
+maxPrice	Precio máximo
+available	Disponibilidad (true o false)
+page	Número de página
+limit	Cantidad de resultados por página
