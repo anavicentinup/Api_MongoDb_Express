@@ -23,10 +23,15 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.6.3"
+    "mongoose": "^9.6.3",
+    "zod": "^4.4.3"
+  },
+  "compilerOptions": {
+    "strict": true
   },
   "devDependencies": {
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
   }
+  
 }

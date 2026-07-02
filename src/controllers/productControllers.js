@@ -1,51 +1,16 @@
 import { Product } from '../models/productModel.js'
-
-const getProducts = async (request, response) => {
-    const userlogged = request.userLogger
-    if (!userlogged) return response.status(401).json({ error: "no podes ver los productos porque estas desautorizado" })
-    try {
-
-        const filterProducts = await Product.find({ userId: userlogged.id }, { userId: 0 })
-
-        const productosFormateados = filterProducts.map(product => {
-            const prodIndForm = product.toObject();
-            if (prodIndForm.createdAt) {
-                prodIndForm.createdAt = new Date(prodIndForm.createdAt).toLocaleString("es-AR");
-            }
-            if (prodIndForm.updatedAt) {
-                prodIndForm.updatedAt = new Date(prodIndForm.updatedAt).toLocaleString("es-AR");
-            }
-            return prodIndForm;
-        });
-
-        response.status(200).json({
-            success: true,
-            data: productosFormateados,
-            message: "productos traidos correctamente"
-        })
-    
-    }
-    catch (error) {
-        response.status(500).json({
-            success: false,
-            data: error.message,
-            message: "error al traer los productos"
-        })
-    }
-    console.log("pidieron los productos")
-}
+import { productSchemaZod, productUpdateSchemaZod } from '../validations/productValidation.js'
 
 const getProductId = async (request, response) => {
     const userlogged = request.userLogger
-    if (!userlogged) return response.status(401).json({ error: "no podes buscar porque estas desautorizado" })
     try {
-        const id = request.params.id 
+        const id = request.params.id
 
         const foundProduct = await Product.findOne({
             _id: id,
             userId: userlogged.id
-        }, 
-        { userId: 0 })
+        },
+            { userId: 0 })
         if (!foundProduct) return response.status(404).json({ error: "Producto no encontrado o no te pertenece" })
         response.status(200).json({
             success: true,
@@ -64,14 +29,22 @@ const getProductId = async (request, response) => {
             message: "error al buscar el producto"
         })
     }
-console.log("pidieron un producto por id")
+    console.log("pidieron un producto por id")
 }
 
 const createProduct = async (request, response) => {
     const userlogged = request.userLogger
-    if (!userlogged) return response.status(401).json({ success: false, error: "no podes crear porque estas desautorizado" })
     try {
-        const body = request.body
+        const validacionZod = productSchemaZod.safeParse(request.body);
+    if (!validacionZod.success) {
+      return response.status(400).json({
+        success: false,
+        errors: validacionZod.error.errors.map(err => err.message)
+      })
+    }
+
+        const body =validacionZod.data;
+
         const newProduct = await Product.create({
             name: body.name,
             price: body.price,
@@ -97,7 +70,7 @@ const createProduct = async (request, response) => {
             data: publicDataProduct,
             message: "producto creado exitosamente"
         })
-        
+
     } catch (error) {
         response.status(500).json({
             success: false,
@@ -111,12 +84,20 @@ const createProduct = async (request, response) => {
 const updateProduct = async (request, response) => {
     const userlogged = request.userLogger
     const id = request.params.id
-    const body = request.body
-    if (!userlogged) return response.status(401).json({ success: false, error: "desautorizado para actualizar" })
-    if (body.stock !== undefined) {
+
+    try {
+ const validacionZod = productUpdateSchemaZod.safeParse(request.body);
+    if (!validacionZod.success) {
+      return response.status(400).json({
+        success: false,
+        errors: validacionZod.error.errors.map(err => err.message)
+      })
+    }
+        const body = validacionZod.data;
+          if (body.stock !== undefined) {
         body.available = body.stock > 0
     }
-    try {
+
         const updatedProduct = await Product.findOneAndUpdate(
             {
                 _id: id,
@@ -130,14 +111,20 @@ const updateProduct = async (request, response) => {
         )
 
         if (!updatedProduct) return response.status(404).json({ success: false, message: "no existe ese producto" })
-
+        
+            const publicData = {
+            id: updatedProduct._id,
+            name: updatedProduct.name,
+            price: updatedProduct.price,
+            category: updatedProduct.category,
+            stock: updatedProduct.stock,
+            available: updatedProduct.available,
+            createdAt: updatedProduct.createdAt.toLocaleString("es-AR"),
+            updatedAt: updatedProduct.updatedAt.toLocaleString("es-AR")
+        };
         response.status(200).json({
             success: true,
-            data: {
-                ...updatedProduct.toObject(),
-                createdAt: updatedProduct.createdAt.toLocaleString("es-AR"),
-                updatedAt: updatedProduct.updatedAt.toLocaleString("es-AR")
-            },
+            data: publicData,
             message: "producto actualizado correctamente"
         })
     } catch (error) {
@@ -152,7 +139,7 @@ const updateProduct = async (request, response) => {
 
 const deleteProduct = async (request, response) => {
     const userlogged = request.userLogger
-    if (!userlogged) return response.status(401).json({ success: false, error: "no podes borrar porque estas desautorizado" })
+
     try {
         const deletedProduct = await Product.findOneAndDelete({
             _id: request.params.id,
@@ -160,7 +147,7 @@ const deleteProduct = async (request, response) => {
         })
 
         if (!deletedProduct) return response.status(404).json({ success: false, error: "producto no encontrado o no te pertenece" })
-   
+
         const publicData = {
             id: deletedProduct._id,
             name: deletedProduct.name,
@@ -183,4 +170,103 @@ const deleteProduct = async (request, response) => {
     console.log("borraron un producto")
 }
 
-export { getProducts, getProductId, createProduct, updateProduct, deleteProduct }
+const getUserProducts = async (request, response) => {
+    const userlogged = request.userLogger
+    let filterProducts;
+    try {
+        if (userlogged.role === "admin") {
+
+            filterProducts = await Product.find({}, { userId: 0 });
+        } else {
+
+            filterProducts = await Product.find({ userId: userlogged.id }, { userId: 0 })
+        }
+        const publicData = filterProducts.map(product => ({
+            id: product._id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+            stock: product.stock,
+            available: product.available,
+            createdAt: product.createdAt.toLocaleString("es-AR"),
+            updatedAt: product.updatedAt.toLocaleString("es-AR")
+        }));
+
+        response.status(200).json({
+            success: true,
+            data: publicData,
+            message: "productos traidos correctamente"
+        })
+
+    }
+    catch (error) {
+        response.status(500).json({
+            success: false,
+            data: error.message,
+            message: "error al traer los productos"
+        })
+    }
+    console.log("pidieron los productos")
+}
+
+const getPublicProducts = async (request, response) => {
+    try {
+        const { category, name, price, available } = request.query;
+        let filter = {};
+        if (category) {
+            const categoryDecoded = decodeURIComponent(category);//decodeURIComponent: funcion js nativa para decodificar caracteres especiales en la URL.
+            filter.category = {
+                $regex: categoryDecoded,
+                $options: "i"
+            };
+        }
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+
+        if (price) {
+            filter.price = {
+                $gte: Number(minPrice),
+                $lte: Number(maxPrice)
+            }
+        }
+
+        if (available) {
+            filter.available = available === 'true';
+        }
+      
+
+        const products = await Product.find(filter, { userId: 0 });
+
+        const productosFormateados = products.map((product) => {
+            const prod = product.toObject();
+
+            if (prod.createdAt) {
+                prod.createdAt = new Date(prod.createdAt).toLocaleString("es-AR");
+            }
+
+            if (prod.updatedAt) {
+                prod.updatedAt = new Date(prod.updatedAt).toLocaleString("es-AR");
+            }
+
+            return prod;
+        });
+
+        response.status(200).json({
+            success: true,
+            data: productosFormateados,
+            message: "productos públicos obtenidos correctamente",
+        });
+    } catch (error) {
+        response.status(500).json({
+            success: false,
+            data: error.message,
+            message: "error al obtener productos públicos",
+        });
+    }
+
+    console.log("pidieron productos públicos");
+
+};
+
+export { getPublicProducts, getUserProducts, getProductId, createProduct, updateProduct, deleteProduct }

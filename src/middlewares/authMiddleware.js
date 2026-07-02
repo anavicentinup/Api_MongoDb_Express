@@ -20,4 +20,44 @@ const AuthMidleware= (req, res, next) => {
     console.log("paso por el middleware de autenticacion")
 }
 
-export {AuthMidleware}
+const checkRole = (allowedRoles) => {
+  return (req, res, next) => {
+    const user = req.userLogger;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({ success: false, message: "No tenés permisos para esta acción" });
+    }
+    console.log("paso por el middleware de rol")
+    next();
+  };
+    console.log("paso por el middleware de rol")
+};
+
+// authUserMiddleware.js
+const UserRolMiddleware = (allowedRoles) => {
+  return (req, res, next) => {
+    const user = req.userLogger;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "No autorizado. Debes iniciar sesión."
+      });
+    }
+
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "No tenés rol para esta acción."
+      });
+    }
+    next();
+  };
+      console.log("paso por el middleware de rol de usuario")
+};
+
+
+
+export {AuthMidleware, checkRole, UserRolMiddleware}

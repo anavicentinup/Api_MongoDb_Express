@@ -1,16 +1,21 @@
 import { Router } from "express";
-import { createProduct, deleteProduct, getProductId, getProducts, updateProduct } from "../controllers/productControllers.js";
+import {getPublicProducts, createProduct, deleteProduct, getProductId, getUserProducts, updateProduct } from "../controllers/productControllers.js";
+import { AuthMidleware, checkRole } from "../middlewares/authMiddleware.js";
 
 const ProductsRouter = Router()
 
-ProductsRouter.get("/", getProducts) 
+ProductsRouter.get("/productPublic", getPublicProducts)
 
-ProductsRouter.get("/:id", getProductId)
+ProductsRouter.use(AuthMidleware)
 
-ProductsRouter.post("/", createProduct)
+ProductsRouter.get("/", checkRole(["admin", "user"]),getUserProducts) 
 
-ProductsRouter.put("/:id", updateProduct)
+ProductsRouter.get("/:id",checkRole(["user"]), getProductId)
 
-ProductsRouter.delete("/:id", deleteProduct)
+ProductsRouter.post("/",checkRole(["user"]),createProduct)
+
+ProductsRouter.put("/:id",checkRole(["user"]), updateProduct)
+
+ProductsRouter.delete("/:id",checkRole(["user"]),deleteProduct)
 
 export {ProductsRouter}

@@ -15,10 +15,13 @@ const server = express()
 
 server.use(express.json())
 server.use(cors())
-server.use("/api/products", AuthMidleware, ProductsRouter)
+server.use("/api/products", ProductsRouter)
+
 server.use("/api/auth", AuthRouter)
+
+
 server.get("/", (request, response) => {
-    
+    //se corrobora si la conexion a mongo db esta activa: 
     if (mongoose.connection.readyState === 1) {
         return response.status(200).json({
             success: true,
