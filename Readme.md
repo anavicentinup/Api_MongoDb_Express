@@ -88,6 +88,27 @@ Ejecutar servidor: "npm run dev"
 
 
 -------------------------------
+Rutas de Autenticación
+Método	Ruta	                  Función
+POST	/api/auth/register	      Registrar usuario
+POST	/api/auth/login	          Iniciar sesión
+GET	  /api/auth/users	          Obtener todos los usuarios (Admin)
+GET	  /api/auth/usuario	        Obtener usuario logueado
+PUT	  /api/auth/update	        Actualizar perfil
+PUT	  /api/auth/updatePassword	Cambiar contraseña
+
+Rutas de Productos
+
+Método	Ruta	Función
+GET	    /api/products/productPublic	    Obtener productos públicos
+GET	    /api/products	                  Obtener productos propios
+GET	    /api/products/:id              	Obtener producto por ID
+POST    /api/products	                  Crear producto
+PUT	    /api/products/:id	              Actualizar producto
+DELETE	/api/products/:id	              Eliminar producto
+
+
+-------------------------------
 Ejemplos de Requests: 
 Login
 POST /auth/login
@@ -104,7 +125,16 @@ POST /products
   "category": "Cosmeticos",
   "stock": 10
 }
--------------------------------
+
+             Query Params
+-category:Filtrar por categoría
+-name:	Filtrar por nombre
+-minPrice:	Precio mínimo
+-maxPrice:	Precio máximo
+-available:	Disponibilidad
+-page:	Número de página
+-limit:	Cantidad de resultados por página
+
 Ejemplos de Query Params: 
 
 Buscar por categoría: (http://localhost:3001/api/products/productPublic?category=camisetas)
@@ -121,30 +151,3 @@ http://localhost:3001/api/products/productPublic?page=2&limit=5
 
 Combinar filtros
 http://localhost:3001/api/products/productPublic?category=camisetas&minPrice=10000&maxPrice=25000&page=1&limit=3
-
-
-Rutas de Autenticación
-Método	Ruta	Función
-POST	/auth/register	Registrar usuario
-POST	/auth/login	Iniciar sesión
-GET	/auth/users	Obtener todos los usuarios (Admin)
-GET	/auth/usuario	Obtener usuario logueado
-PUT	/auth/update	Actualizar perfil
-PUT	/auth/updatePassword	Cambiar contraseña
-Rutas de Productos
-Método	Ruta	Función
-GET	/products/productPublic	Obtener productos públicos
-GET	/products	Obtener productos
-GET	/products/:id	Obtener producto por ID
-POST	/products	Crear producto
-PUT	/products/:id	Actualizar producto
-DELETE	/products/:id	Eliminar producto
-Query Params Disponibles
-Query Param	Función
-category	Filtrar por categoría
-name	Filtrar por nombre
-minPrice	Precio mínimo
-maxPrice	Precio máximo
-available	Disponibilidad (true o false)
-page	Número de página
-limit	Cantidad de resultados por página
