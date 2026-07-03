@@ -2,7 +2,7 @@ import { z } from "zod"
 
 const productSchemaZod = z.object({
     name: z.string("El nombre del producto debe existir")
-        .trim("El nombre del producto no puede contener espacios al inicio o al final")
+        .trim()
         .min(3, "El nombre del producto debe tener al menos 3 caracteres")
         .max(100),
     price: z.number("El precio del producto debe ser un número")
@@ -10,7 +10,7 @@ const productSchemaZod = z.object({
         .min(0, "El precio del producto no puede ser negativo")
         .default(0),
     category: z.string("La categoría del producto debe existir")
-        .trim("La categoría del producto no puede contener espacios al inicio o al final")
+        .trim()
         .min(5, "La categoría del producto debe tener al menos 5 caracteres")
         .max(50)
         .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/, "La categoría del producto solo puede contener letras, números y espacios"),
@@ -18,11 +18,11 @@ const productSchemaZod = z.object({
         .int("El stock del producto debe ser un número entero")
         .min(0, "El stock del producto no puede ser negativo")
         .default(0),
-})
+}).strict()
 
 const productUpdateSchemaZod = z.object({
     name: z.string("El nombre del producto debe existir")
-        .trim("El nombre del producto no puede contener espacios al inicio o al final")
+        .trim()
         .min(3, "El nombre del producto debe tener al menos 3 caracteres")
         .max(100)
         .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+$/, "El nombre del producto solo puede contener letras, números y espacios")
@@ -33,7 +33,7 @@ const productUpdateSchemaZod = z.object({
         .default(0)
         ,
     category: z.string("La categoría del producto debe existir")
-        .trim("La categoría del producto no puede contener espacios al inicio o al final")
+        .trim()
         .min(5, "La categoría del producto debe tener al menos 5 caracteres")
         .max(50)
         .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/, "La categoría del producto solo puede contener letras, números y espacios")
@@ -43,7 +43,7 @@ const productUpdateSchemaZod = z.object({
         .min(0, "El stock del producto no puede ser negativo")
         .default(0)
 
-}).partial()
+}).partial().strict()
 
 
 export { productSchemaZod, productUpdateSchemaZod }

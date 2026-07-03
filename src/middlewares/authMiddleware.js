@@ -20,6 +20,7 @@ const AuthMidleware= (req, res, next) => {
     console.log("paso por el middleware de autenticacion")
 }
 
+
 const checkRole = (allowedRoles) => {
   return (req, res, next) => {
     const user = req.userLogger;
@@ -34,7 +35,7 @@ const checkRole = (allowedRoles) => {
     console.log("paso por el middleware de rol")
 };
 
-// authUserMiddleware.js
+
 const UserRolMiddleware = (allowedRoles) => {
   return (req, res, next) => {
     const user = req.userLogger;

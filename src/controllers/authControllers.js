@@ -2,8 +2,8 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { User } from "../models/userModel.js"
 import { configDotenv } from 'dotenv';
-import {userSchemaZod, userUpdateSchemaZod} from "../validations/userValidation.js"
-import {changePasswordSchemaZod} from "../validations/userValidation.js"
+import { userSchemaZod, userUpdateSchemaZod } from "../validations/userValidation.js"
+import { changePasswordSchemaZod } from "../validations/userValidation.js"
 configDotenv()
 
 const catchUsuarios = async (request, response) => {
@@ -20,6 +20,7 @@ const catchUsuarios = async (request, response) => {
       creado: user.createdAt.toLocaleString("es-AR"),
       actualizado: user.updatedAt.toLocaleString("es-AR")
     }))
+    console.log("vieron los usuarios")
     response.status(200).json({
       success: true,
       data: publicDataUsers,
@@ -28,27 +29,24 @@ const catchUsuarios = async (request, response) => {
   } catch (error) {
     response.status(500).json({ success: false, message: "servidor en mantenimiento" })
   }
-  console.log("vieron los usuarios")
 }
 
 const register = async (request, response) => {
   try {
-
     const validacionZod = userSchemaZod.safeParse(request.body)
-  if(!validacionZod.success){
-    return response.status(400).json({
-      success: false,
-      message: "Error en validación",
-      error: validacionZod.error.issues.map(err => err.message)
-    })
-  }
+    if (!validacionZod.success) {
+      return response.status(400).json({
+        success: false,
+        message: "Error en validación",
+        error: validacionZod.error.issues.map(err => err.message)
+      })
+    }
 
-  const { username, email, password, role } = validacionZod.data
+    const { username, email, password, role } = validacionZod.data
     const foundUser = await User.findOne({ email })
     if (foundUser) {
       return response.status(409).json({ success: false, message: "el email ya esta registrado" })
     }
-
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -66,7 +64,7 @@ const register = async (request, response) => {
       password: hashedPassword,
       role
     })
-
+    console.log("se registro un nuevo usuario")
     response.status(201).json({
       success: true,
       message: "¡Cuenta creada con éxito! Ya podés iniciar sesión 🎉",
@@ -82,7 +80,6 @@ const register = async (request, response) => {
   } catch (error) {
     response.status(500).json({ success: false, message: error.message })
   }
-  console.log("se registro un nuevo usuario")
 }
 
 const login = async (request, response) => {
@@ -99,7 +96,7 @@ const login = async (request, response) => {
     if (!findUser) {
       return response.status(403).json({ success: false, message: "no estas autorizado" })
     }
-    const isValid = await bcrypt.compare(password, findUser.password)//comparo la contraseña
+    const isValid = await bcrypt.compare(password, findUser.password)
 
     if (!isValid) {
       return response.status(403).json({ success: false, message: "no estas autorizado" })
@@ -109,7 +106,9 @@ const login = async (request, response) => {
     const secretKey = process.env.JWT_SECRETKEY
     const options = { expiresIn: "30d" }
     const token = jwt.sign(payLoad, secretKey, options)
- console.log(payLoad)
+
+    console.log("un usuario se logueo desde la ip: " + ip)
+
     response.json({
       success: true,
       message: "Login exitoso",
@@ -120,13 +119,13 @@ const login = async (request, response) => {
         email: findUser.email,
         role: findUser.role
       }
-     
+
     });
   }
   catch (error) {
     response.status(500).json({ success: false, data: error.message, message: "error en el servidor" })
   }
-  
+
 }
 
 // nueva funcion: Actualizar datos del usuario logueado
@@ -136,16 +135,25 @@ const updateUser = async (request, response) => {
     return response.status(401).json({ success: false, message: "No autorizado" });
   }
 
-  try {
-    const validacionZod = userUpdateSchemaZod.safeParse(request.body);//partial() me permite actualizar algunos campos...con safeparse() valido los datos con mi schema de zod.
-    if(!validacionZod.success) {
+ try {
+    const validacionZod = userUpdateSchemaZod.safeParse(request.body);
+
+    if (!validacionZod.success) {
+
+      const errors = validacionZod.error.issues.map(err => {
+        if (err.code === "unrecognized_keys") {
+          return "Se enviaron campos que no están permitidos";
+        }
+        return err.message;
+      });
+
       return response.status(400).json({
         success: false,
         message: "Error en validación",
-        error: validacionZod.error.issues.map(err => err.message)//hago una lista de los errores con el msj personalizado que deje en el schema de zod.
+        error: errors
       });
     }
- 
+
     const updatedUser = await User.findByIdAndUpdate(
       userlogged.id,
       validacionZod.data,
@@ -155,7 +163,7 @@ const updateUser = async (request, response) => {
     if (!updatedUser) {
       return response.status(404).json({ success: false, message: "Usuario no encontrado" });
     }
-
+    console.log("actualizaron un usuario");
     response.status(200).json({
       success: true,
       data: {
@@ -173,7 +181,7 @@ const updateUser = async (request, response) => {
   } catch (error) {
     response.status(500).json({ success: false, message: error.message });
   }
-  console.log("actualizaron un usuario");
+
 };
 //nueva funcion: cambiar contraseña del usuario logueado
 const changePassword = async (req, res) => {
@@ -195,14 +203,12 @@ const changePassword = async (req, res) => {
 
     const { currentPassword, newPassword } = validacionZod.data;
 
-    // 🔥 1. buscar usuario con password real
     const user = await User.findById(userlogged.id);
 
     if (!user) {
       return res.status(404).json({ success: false, message: "Usuario no encontrado" });
     }
 
-    // 🔥 2. comparar contraseña actual
     const isMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!isMatch) {
@@ -212,13 +218,12 @@ const changePassword = async (req, res) => {
       });
     }
 
-    // 🔥 3. hashear nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // 🔥 4. guardar
     user.password = hashedPassword;
     await user.save();
 
+    console.log("cambiaron la contraseña de un usuario");
     return res.status(200).json({
       success: true,
       message: "Contraseña actualizada correctamente"
@@ -233,7 +238,7 @@ const usuario = async (req, res) => {
   const userlogged = req.userLogger;
   try {
     const user = await User.findById(req.userLogger.id).select("-password");
-
+    console.log("un usuario pidio sus datos");
     res.json({
       success: true,
       data: user,

@@ -12,6 +12,9 @@ const getProductId = async (request, response) => {
         },
             { userId: 0 })
         if (!foundProduct) return response.status(404).json({ error: "Producto no encontrado o no te pertenece" })
+
+        console.log("pidieron un producto por id")
+
         response.status(200).json({
             success: true,
             data: {
@@ -28,8 +31,8 @@ const getProductId = async (request, response) => {
             data: error.message,
             message: "error al buscar el producto"
         })
+        console.log("pidieron un producto por id")
     }
-    console.log("pidieron un producto por id")
 }
 
 const createProduct = async (request, response) => {
@@ -64,7 +67,7 @@ const createProduct = async (request, response) => {
             createdAt: newProduct.createdAt.toLocaleString("es-AR"),
             updatedAt: newProduct.updatedAt.toLocaleString("es-AR")
         }
-
+        console.log("crearon un producto")
         response.status(200).json({
             success: true,
             data: publicDataProduct,
@@ -78,7 +81,7 @@ const createProduct = async (request, response) => {
             message: "error al crear el producto"
         })
     }
-    console.log("crearon un producto")
+
 }
 
 const updateProduct = async (request, response) => {
@@ -122,6 +125,7 @@ const updateProduct = async (request, response) => {
             createdAt: updatedProduct.createdAt.toLocaleString("es-AR"),
             updatedAt: updatedProduct.updatedAt.toLocaleString("es-AR")
         };
+        console.log("actualizaron un producto")
         response.status(200).json({
             success: true,
             data: publicData,
@@ -134,7 +138,6 @@ const updateProduct = async (request, response) => {
             message: "error al actualizar el producto"
         })
     }
-    console.log("actualizaron un producto")
 }
 
 const deleteProduct = async (request, response) => {
@@ -157,6 +160,8 @@ const deleteProduct = async (request, response) => {
             createdAt: deletedProduct.createdAt.toLocaleString("es-AR"),
             updatedAt: deletedProduct.updatedAt.toLocaleString("es-AR")
         }
+
+        console.log("pidieron eliminar un producto")
         return response.status(200).json({
             success: true,
             product: publicData,
@@ -167,7 +172,6 @@ const deleteProduct = async (request, response) => {
     catch (error) {
         response.status(500).json({ success: false, data: error.message, message: "error al eliminar el producto" })
     }
-    console.log("borraron un producto")
 }
 
 const getUserProducts = async (request, response) => {
@@ -194,7 +198,6 @@ const getUserProducts = async (request, response) => {
             filterProducts.available = available === "true";
         }
 
-        // Paginación
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
@@ -215,7 +218,7 @@ const getUserProducts = async (request, response) => {
             createdAt: product.createdAt.toLocaleString("es-AR"),
             updatedAt: product.updatedAt.toLocaleString("es-AR")
         }));
-
+        console.log("pidieron los productos")
         response.status(200).json({
             success: true,
             data: publicData,
@@ -236,7 +239,6 @@ const getUserProducts = async (request, response) => {
             message: "error al traer los productos"
         })
     }
-    console.log("pidieron los productos")
 }
 
 const getPublicProducts = async (request, response) => {
@@ -288,15 +290,15 @@ const getPublicProducts = async (request, response) => {
 
             return prod;
         });
-
+        console.log("pidieron productos públicos");
         response.status(200).json({
             success: true,
             data: productosFormateados,
             pagination: {
-                total,                        
-                page: pageNum,               
-                limit: limitNum,             
-                totalPages: Math.ceil(total / limitNum) 
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
             },
             message: "productos públicos obtenidos correctamente",
         });
@@ -307,9 +309,6 @@ const getPublicProducts = async (request, response) => {
             message: "error al obtener productos públicos",
         });
     }
-
-    console.log("pidieron productos públicos");
-
 };
 
 export { getPublicProducts, getUserProducts, getProductId, createProduct, updateProduct, deleteProduct }
